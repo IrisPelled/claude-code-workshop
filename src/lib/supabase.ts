@@ -1,13 +1,13 @@
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+// Read from runtime globals (public/config.js) or build-time env vars (.env)
+const w = window as unknown as Record<string, string>
+const supabaseUrl      = w.__SUPABASE_URL__      || import.meta.env.VITE_SUPABASE_URL      as string
+const supabaseAnonKey  = w.__SUPABASE_ANON_KEY__ || import.meta.env.VITE_SUPABASE_ANON_KEY as string
 
-// createClient requires non-empty strings — use placeholders so the module
-// loads without crashing; the actual values are validated at submit time.
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder',
+  supabaseUrl      || 'https://placeholder.supabase.co',
+  supabaseAnonKey  || 'placeholder',
 )
 
 export interface Registration {
@@ -23,7 +23,6 @@ export async function registerForWebinar(data: Registration) {
   const { error } = await supabase.from('registrations').insert([data])
 
   if (error) {
-    // Unique violation on phone = duplicate registration
     if (error.code === '23505') {
       throw new Error('DUPLICATE_PHONE')
     }
